@@ -10,11 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Step 2: List files (simulated build step)
       - name: List Files
         run: ls -la
 
+      # Step 3: Simulated Build Message
       - name: Build Message
         run: echo "Build Successful 🚀"
+
+      # Step 4: Notify Slack on Success
+      - name: Notify Slack Success
+        if: success()
+        run: |
+          curl -X POST -H "Content-type: application/json" \
+          --data "{\"text\":\"✅ GitHub Actions Build Successful!\"}" \
+          ${{ secrets.SLACK_WEBHOOK }}
+
+      # Step 5: Notify Slack on Failure
+      - name: Notify Slack Failure
+        if: failure()
+        run: |
+          curl -X POST -H "Content-type: application/json" \
+          --data "{\"text\":\"❌ GitHub Actions Build Failed!\"}" \
+          ${{ secrets.SLACK_WEBHOOK }}
