@@ -1,0 +1,56 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  GIT_STRATEGY: clone
+
+# Build job
+build:
+  stage: build
+  image: alpine:latest
+  script:
+    - echo "Building project..."
+    - ls -la
+    - echo "Build Successful 🚀"
+  artifacts:
+    paths:
+      - index.html
+    expire_in: 1 hour
+  only:
+    - main
+
+# Deploy to GitLab Pages
+pages:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying to GitLab Pages..."
+    - mkdir -p public
+    - cp index.html public/
+    - echo "Deployment Successful 🚀"
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+  needs:
+    - build
+
+# Optional: Notify on success
+notify_success:
+  stage: deploy
+  image: curlimages/curl:latest
+  script:
+    - |
+      if [ -n "$SLACK_WEBHOOK" ]; then
+        curl -X POST -H "Content-type: application/json" \
+        --data '{"text":"✅ GitLab CI/CD Build & Deploy Successful!"}' \
+        $SLACK_WEBHOOK
+      else
+        echo "SLACK_WEBHOOK not configured, skipping notification"
+      fi
+  only:
+    - main
+  when: on_success
+  allow_failure: true
