@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,18 +22,32 @@ jobs:
       - name: Build Message
         run: echo "Build Successful 🚀"
 
-      # Step 4: Notify Slack on Success
+      # Step 4: Deploy to Netlify
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: '.'
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      # Step 5: Notify Slack on Success
       - name: Notify Slack Success
         if: success()
         run: |
           curl -X POST -H "Content-type: application/json" \
-          --data "{\"text\":\"✅ GitHub Actions Build Successful!\"}" \
+          --data "{\"text\":\"✅ GitHub Actions Build & Deploy to Netlify Successful!\"}" \
           ${{ secrets.SLACK_WEBHOOK }}
 
-      # Step 5: Notify Slack on Failure
+      # Step 6: Notify Slack on Failure
       - name: Notify Slack Failure
         if: failure()
         run: |
           curl -X POST -H "Content-type: application/json" \
-          --data "{\"text\":\"❌ GitHub Actions Build Failed!\"}" \
+          --data "{\"text\":\"❌ GitHub Actions Build & Deploy Failed!\"}" \
           ${{ secrets.SLACK_WEBHOOK }}
