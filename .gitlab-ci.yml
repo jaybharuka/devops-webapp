@@ -20,18 +20,18 @@ build:
   only:
     - main
 
-# Deploy to GitLab Pages
-pages:
+# Deploy to Netlify
+deploy_netlify:
   stage: deploy
-  image: alpine:latest
+  image: node:18-alpine
   script:
-    - echo "Deploying to GitLab Pages..."
+    - echo "Installing Netlify CLI..."
+    - npm install -g netlify-cli
+    - echo "Deploying to Netlify..."
     - mkdir -p public
     - cp index.html public/
-    - echo "Deployment Successful 🚀"
-  artifacts:
-    paths:
-      - public
+    - netlify deploy --prod --dir=public --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID
+    - echo "Deployment to Netlify Successful 🚀"
   only:
     - main
   needs:
@@ -45,7 +45,7 @@ notify_success:
     - |
       if [ -n "$SLACK_WEBHOOK" ]; then
         curl -X POST -H "Content-type: application/json" \
-        --data '{"text":"✅ GitLab CI/CD Build & Deploy Successful!"}' \
+        --data '{"text":"✅ GitLab CI/CD Build & Deploy to Netlify Successful!"}' \
         $SLACK_WEBHOOK
       else
         echo "SLACK_WEBHOOK not configured, skipping notification"
